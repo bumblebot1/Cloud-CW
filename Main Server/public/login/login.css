@@ -4,51 +4,67 @@ html, body {
     margin: 0px;
     padding: 0px;
     color: #FFFFFF;
-    background-color: #1F1F1F;
+    background-color: #922424;
     font-family: "Quicksand", sans-serif;
     font-size: 1.25em;
     display: flex;
     flex-direction: column;
 }
 
-/** Section Styling (title and login) **/
-section {
-    margin: auto;
+.signin-button {
+    position: absolute;
+    top:0;
+    right:0;
+}
+
+.smallText {
+    font-size: 14px;
+}
+
+.mailaddress {
+    color: yellow;
+}
+
+.upload {
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+    margin: 0 auto;
+    padding: 0 0 3em 0;
+}
+
+.box {
+    background-color: #1f1f1f;
+    padding: 6.25rem 1.25rem;
+}
+
+.header {
+    padding: 2em 1em 3em;
     text-align: center;
 }
 
-section img {
-    width: 20%;
+.input-file {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
 }
 
-section div:first-of-type {
-    margin: 0px auto 24px auto;
-}
-
-section span * {
+.input-file + label{
+    max-width: 80%;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
     display: inline-block;
+    overflow: hidden;
+    padding: 0.625rem 1.25rem;
+    background-color: #d3394c;
 }
 
-section h1:first-of-type {
-    font-size: 2em;
-    margin: 0px 0px 24px 0px;
-}
-
-/** Leaderboard Styling **/
-table {
-    margin: auto;
-    border-collapse: separate;
-    border-spacing: 16px 0px;
-}
-
-tr td:nth-child(1), tr th:nth-child(1) {
-    text-align: start;
-}
-
-tr td:nth-child(2), tr th:nth-child(2) {
-    text-align: center;
-}
-
-tr td:nth-child(3), tr th:nth-child(3) {
-    text-align: end;
+.input-file + label:hover{
+    background-color: #722040
 }
