@@ -25,7 +25,10 @@ function logged_in(googleUser) {
             newDiv.appendChild(spanEmail);
             newDiv.className = "signin-button smallText"
             signinButton.parentNode.replaceChild(newDiv, signinButton);
-            localStorage.setItem("userid", resp["id"]);
+            sessionStorage.setItem("userid", resp["id"]);
+            document.getElementById("file-input").disabled = false;
+            document.getElementById("upload-label").classList.remove("disabled-upload");
+            document.getElementById("gallery-button").classList.remove("disabled-upload");
             console.log("signed in as: " + resp["email"]);
         }
     }
@@ -43,17 +46,27 @@ function renderLoginButton(){
     });
 }
 
-function fileSelected(fileList) {
+function fileSelected(event) {
+    var fileList = event.target.files;
     var file = fileList[0];
-    console.log(file);
+
     var fileNameSpan = document.getElementById("file-message");
     fileNameSpan.innerText = file.name;
 
-    var img = document.createElement("img");
-    img.file = file;
-    img.className = "preview-image";
+    var img = document.getElementById("preview-image");
+    if(!img) {
+        img = document.createElement("img");
+        img.file = file;
+        img.id = "preview-image";
+        img.className = "preview-image";
+        var uploadArea = document.getElementById("upload-area");
+        uploadArea.appendChild(img);
+        
+        var message = document.createElement("div");
+        message.innerText = "You're image was uploaded successfully!";
+        uploadArea.appendChild(message);
+    }
 
-    document.getElementById("upload-area").appendChild(img);
     var reader = new FileReader();
     reader.onload = (function(aImg) { 
             return function(e) { 
@@ -65,7 +78,16 @@ function fileSelected(fileList) {
     var req = new XMLHttpRequest();
     req.open("POST", "http://localhost:8080/imageUpload");
     formData = new FormData();
-    formData.append("id", localStorage.getItem("userid"));
+    formData.append("id", sessionStorage.getItem("userid"));
     formData.append("imageFile", file);
     req.send(formData);
+}
+
+function getMyGallery(event){
+    window.location.href = "http://localhost:8080/gallery?userid="+sessionStorage.getItem("userid");
+}
+
+window.onload = function() {
+    document.getElementById("file-input").addEventListener("change", fileSelected);
+    document.getElementById("gallery-button").addEventListener("click", getMyGallery);
 }

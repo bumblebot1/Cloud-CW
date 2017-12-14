@@ -31,9 +31,15 @@ function authenticateID (token, res){
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.use(express.static(__dirname + "/public/login"));
+app.use(express.static(__dirname + "/public/gallery"));
 
 app.post("/userLogin", function(req, res) {
    authenticateID(req.body.authToken, res)
+});
+
+app.get("/gallery", function(req, res) {
+    console.log(req.query.userid+"this is it");
+    res.sendFile(__dirname+ "/public/gallery/gallery.html");
 });
 
 app.post("/imageUpload", upload.single("imageFile"), function(req, res) {
