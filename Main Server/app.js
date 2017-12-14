@@ -6,7 +6,7 @@ var app = express();
 var port = process.env.PORT || 8080;
 var path = require("path");
 var GoogleAuth = require('google-auth-library');
-var CLIENT_ID = "1035545407464-d0d22am0o9u9khb4dqhl9bolaskhr4c7.apps.googleusercontent.com";
+var CLIENT_ID = "376810441789-q2rjouug23e03ke8a1bfdb3cfodq903u.apps.googleusercontent.com";
 
 function authenticateID (token, res){
     var auth = new GoogleAuth;

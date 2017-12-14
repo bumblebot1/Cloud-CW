@@ -4,7 +4,7 @@ function logged_in(googleUser) {
     });
     
     var postReq = new XMLHttpRequest();
-    postReq.open("POST", "http://localhost:8080/userLogin");
+    postReq.open("POST", "https://imshare-189020.appspot.com/userLogin");
     postReq.setRequestHeader("Content-Type", "application/json");
     postReq.send(data);
     postReq.onreadystatechange = function(){
@@ -76,7 +76,7 @@ function fileSelected(event) {
     reader.readAsDataURL(file);
     
     var req = new XMLHttpRequest();
-    req.open("POST", "http://localhost:8080/imageUpload");
+    req.open("POST", "https://imshare-189020.appspot.com/imageUpload");
     formData = new FormData();
     formData.append("id", sessionStorage.getItem("userid"));
     formData.append("imageFile", file);
@@ -84,7 +84,7 @@ function fileSelected(event) {
 }
 
 function getMyGallery(event){
-    window.location.href = "http://localhost:8080/gallery?userid="+sessionStorage.getItem("userid");
+    window.location.href = "https://imshare-189020.appspot.com/gallery?userid="+sessionStorage.getItem("userid");
 }
 
 window.onload = function() {
