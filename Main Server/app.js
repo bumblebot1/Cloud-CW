@@ -1,3 +1,5 @@
+"use strict";
+
 var express = require("express");
 var bodyParser = require("body-parser");
 var multer  = require('multer');
@@ -6,7 +8,7 @@ var app = express();
 var port = process.env.PORT || 8080;
 var path = require("path");
 var GoogleAuth = require('google-auth-library');
-var CLIENT_ID = "376810441789-q2rjouug23e03ke8a1bfdb3cfodq903u.apps.googleusercontent.com";
+var CLIENT_ID = "376810441789-fjcmqrde4a99a4fc843f53tn4ucibijp.apps.googleusercontent.com";
 
 function authenticateID (token, res){
     var auth = new GoogleAuth;
