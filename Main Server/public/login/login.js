@@ -25,6 +25,7 @@ function logged_in(googleUser) {
             newDiv.appendChild(spanEmail);
             newDiv.className = "signin-button smallText"
             signinButton.parentNode.replaceChild(newDiv, signinButton);
+            localStorage.setItem("userid", resp["id"]);
             console.log("signed in as: " + resp["email"]);
         }
     }
@@ -42,3 +43,29 @@ function renderLoginButton(){
     });
 }
 
+function fileSelected(fileList) {
+    var file = fileList[0];
+    console.log(file);
+    var fileNameSpan = document.getElementById("file-message");
+    fileNameSpan.innerText = file.name;
+
+    var img = document.createElement("img");
+    img.file = file;
+    img.className = "preview-image";
+
+    document.getElementById("upload-area").appendChild(img);
+    var reader = new FileReader();
+    reader.onload = (function(aImg) { 
+            return function(e) { 
+                aImg.src = e.target.result; 
+            }; 
+    })(img);
+    reader.readAsDataURL(file);
+    
+    var req = new XMLHttpRequest();
+    req.open("POST", "http://localhost:8080/imageUpload");
+    formData = new FormData();
+    formData.append("id", localStorage.getItem("userid"));
+    formData.append("imageFile", file);
+    req.send(formData);
+}

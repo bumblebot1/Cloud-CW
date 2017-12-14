@@ -68,3 +68,9 @@ html, body {
 .input-file + label:hover{
     background-color: #722040
 }
+
+.preview-image {
+    padding: 6.25rem 1.25rem;
+    max-width: 800px;
+    height: auto;
+}

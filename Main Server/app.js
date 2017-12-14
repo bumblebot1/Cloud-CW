@@ -1,5 +1,7 @@
 var express = require("express");
 var bodyParser = require("body-parser");
+var multer  = require('multer');
+var upload = multer();
 var app = express();
 var port = process.env.PORT || 8080;
 var path = require("path");
@@ -26,7 +28,6 @@ function authenticateID (token, res){
         });
 }
 
-
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.use(express.static(__dirname + "/public/login"));
@@ -35,9 +36,13 @@ app.post("/userLogin", function(req, res) {
    authenticateID(req.body.authToken, res)
 });
 
+app.post("/imageUpload", upload.single("imageFile"), function(req, res) {
+    console.log(req.body);
+    console.log(req.file);
+})
+
 app.get("/", function(req, res) {
     res.sendFile(path.join(__dirname + "/public/login/login.html"));
 });
-
 
 app.listen(port);
