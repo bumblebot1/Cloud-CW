@@ -10,6 +10,44 @@ var path = require("path");
 var GoogleAuth = require('google-auth-library');
 var CLIENT_ID = "376810441789-fjcmqrde4a99a4fc843f53tn4ucibijp.apps.googleusercontent.com";
 
+var Storage = require('@google-cloud/storage');
+var projectId = 'imshare-189020';
+
+var storage = new Storage({
+    projectId: projectId
+});
+var bucket = storage.bucket('imshare-storage');
+
+function sendUploadToGCS (req, res, next) {
+    if (!req.file) {
+      return next();
+    }
+  
+    const gcsname = Date.now() + req.file.originalname;
+    const file = bucket.file(gcsname);
+  
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: req.file.mimetype
+      }
+    });
+  
+    stream.on('error', (err) => {
+      req.file.cloudStorageError = err;
+      next(err);
+    });
+  
+    stream.on('finish', () => {
+      req.file.cloudStorageObject = gcsname;
+      file.makePublic().then(() => {
+        req.file.cloudStoragePublicUrl = getPublicUrl(gcsname);
+        next();
+      });
+    });
+  
+    stream.end(req.file.buffer);
+  }
+
 function authenticateID (token, res){
     var auth = new GoogleAuth;
     var client = new auth.OAuth2(CLIENT_ID, '', '');
@@ -44,9 +82,8 @@ app.get("/gallery", function(req, res) {
     res.sendFile(__dirname+ "/public/gallery/gallery.html");
 });
 
-app.post("/imageUpload", upload.single("imageFile"), function(req, res) {
-    console.log(req.body);
-    console.log(req.file);
+app.post("/imageUpload", upload.single("imageFile"), sendUploadToGCS, function(req, res) {
+
 })
 
 app.get("/", function(req, res) {
