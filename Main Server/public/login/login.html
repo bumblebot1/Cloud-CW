@@ -14,13 +14,12 @@
   </head>
   <body>
     <div class="g-signin2 signin-button" id= "signin-button"></div>
-    <div class="gallery" id="gallery-button">
-      My Gallery
-    </div>
+    <div class="gallery" id="gallery-button">My Gallery</div>
     <div class="header">
       <h1>Imshare</h1>
       <p>A website where you can edit and share your images</p>
     </div>
+    <div id="upload-status" class="message">Click below to choose an image</div>
     <div id="upload-area" class="upload">
       <div class="box">
         <input type="file" name="file" id="file-input" class="input-file hidden" accept="image/*">
@@ -29,6 +28,15 @@
           <span id="file-message">Choose an image...</span>
         </label>
       </div>
+      <img id="preview-image" class="hidden">
     </div>
-  </body>
+    <div id="image-menu" class="image-menu hidden">
+      <div id="effect-buttons" class="button-area">
+        <button class="myButton" id="original">Original</button>
+        <button class="myButton" id="grayscale">Grayscale</button>
+        <button class="myButton" id="sepia">Sepia</button>
+        <button class="myButton" id="upload">Upload</button>
+      </div>
+    </div>
+</body>
 </html>

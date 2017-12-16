@@ -9,6 +9,7 @@ var port = process.env.PORT || 8080;
 var path = require("path");
 var GoogleAuth = require('google-auth-library');
 var CLIENT_ID = "376810441789-fjcmqrde4a99a4fc843f53tn4ucibijp.apps.googleusercontent.com";
+var Jimp = require('jimp');
 
 var Storage = require('@google-cloud/storage');
 var projectId = 'imshare-189020';
@@ -19,34 +20,34 @@ var storage = new Storage({
 var bucket = storage.bucket('imshare-storage');
 
 function sendUploadToGCS (req, res, next) {
-    if (!req.file) {
-      return next();
-    }
-  
-    const gcsname = req.body.id + "_" + req.file.originalname;
-    const file = bucket.file(gcsname);
-  
-    const stream = file.createWriteStream({
-      metadata: {
-        contentType: req.file.mimetype
-      }
-    });
-  
-    stream.on('error', (err) => {
-      req.file.cloudStorageError = err;
-      next(err);
-    });
-  
-    stream.on('finish', () => {
-      req.file.cloudStorageObject = gcsname;
-      file.makePublic().then(() => {
-        req.file.cloudStoragePublicUrl = getPublicUrl(gcsname);
-        next();
-      });
-    });
-  
-    stream.end(req.file.buffer);
+  if (!req.file) {
+    return next();
   }
+
+  const gcsname = req.body.id + "_" + req.file.originalname;
+  const file = bucket.file(gcsname);
+
+  const stream = file.createWriteStream({
+    metadata: {
+      contentType: req.file.mimetype
+    }
+  });
+
+  stream.on('error', (err) => {
+    req.file.cloudStorageError = err;
+    next(err);
+  });
+
+  stream.on('finish', () => {
+    req.file.cloudStorageObject = gcsname;
+    file.makePublic().then(() => {
+      req.file.cloudStoragePublicUrl = getPublicUrl(gcsname);
+      next();
+    });
+  });
+
+  stream.end(req.file.buffer);
+}
 
 function authenticateID (token, res){
     var auth = new GoogleAuth;
@@ -83,8 +84,32 @@ app.get("/gallery", function(req, res) {
 });
 
 app.post("/imageUpload", upload.single("imageFile"), sendUploadToGCS, function(req, res) {
-
+  res.end();
 })
+
+app.post("/grayscaleImage", upload.single("imageFile"), function(req, res) {
+  Jimp.read(req.file.buffer, function(err, image) {
+    image.grayscale();
+    image.getBase64(image.getMIME(), function(err, buffer){
+      res.contentType(image.getMIME());
+      res.send(buffer);
+     });
+  });
+});
+
+app.post("/sepiaImage", upload.single("imageFile"), function(req, res) {
+  Jimp.read(req.file.buffer, function(err, image) {
+    image.sepia();
+    image.getBase64(image.getMIME(), function(err, buffer){
+      res.contentType(image.getMIME());
+      res.send(buffer);
+     });
+  });
+});
+
+app.post("/uploadImage", upload.single("imageFile"), sendUploadToGCS, function(req, res) {
+    res.status(200).end();
+});
 
 app.get("/", function(req, res) {
     res.sendFile(path.join(__dirname + "/public/login/login.html"));
