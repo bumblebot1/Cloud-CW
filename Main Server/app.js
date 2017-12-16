@@ -84,7 +84,7 @@ app.get("/gallery", function(req, res) {
 });
 
 app.post("/imageUpload", upload.single("imageFile"), sendUploadToGCS, function(req, res) {
-  res.end();
+  res.status(200).end();
 })
 
 app.post("/grayscaleImage", upload.single("imageFile"), function(req, res) {
