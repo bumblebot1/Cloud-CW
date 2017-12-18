@@ -1,12 +1,14 @@
 "use strict";
 
+var server = "https://imshare-189020.appspot.com/";
+
 function logged_in(googleUser) {
     var data = JSON.stringify({
         authToken: googleUser.getAuthResponse().id_token
     });
     
     var postReq = new XMLHttpRequest();
-    postReq.open("POST", "https://imshare-189020.appspot.com/userLogin");
+    postReq.open("POST", server + "userLogin");
     postReq.setRequestHeader("Content-Type", "application/json");
     postReq.send(data);
     postReq.onreadystatechange = function(){
@@ -69,15 +71,14 @@ function fileSelected(event) {
     fileNameSpan.innerText = file.name;
 
     var img = document.getElementById("preview-image");
+    var imgData = document.getElementById("image-data");
     img.file = file;
     img.className = "preview-image";
     
     var reader = new FileReader();
-    reader.onload = (function(aImg) { 
-        return function(e) { 
-            aImg.src = e.target.result; 
-        }; 
-    })(img);
+    reader.onload = function(e) { 
+        img.src = e.target.result;
+    }; 
     reader.readAsDataURL(file);
     document.getElementById("image-menu").classList.remove("hidden");
     document.getElementById("grayscale").addEventListener("click", grayscaleImage);
@@ -91,7 +92,7 @@ function fileSelected(event) {
 
 function getMyGallery(event){
     if(sessionStorage.getItem("userid")){
-        window.location.href = "https://imshare-189020.appspot.com/gallery?userid="+sessionStorage.getItem("userid");
+        window.location.href = server + "gallery?userid="+sessionStorage.getItem("userid");
     } else {
         alert("You are not logged in, sign in to view your gallery!");
     }
@@ -100,34 +101,40 @@ function getMyGallery(event){
 function grayscaleImage(event) {
     var img = document.getElementById("preview-image");
     if(img){
-        var req = new XMLHttpRequest();
-        req.open("POST", "https://imshare-189020.appspot.com/grayscaleImage");
-        var formData = new FormData();
-        formData.append("id", sessionStorage.getItem("userid"));
-        formData.append("imageFile", img.file);
-        req.onreadystatechange = function() {
-            if (req.readyState == XMLHttpRequest.DONE) {
-                img.src = req.response;
-            }
-        }
-        req.send(formData);
+        var wrapperImg = document.createElement("img");
+        var reader = new FileReader();
+        reader.onload = (function(aImg) { 
+            return function(e) { 
+                aImg.src = e.target.result;
+                aImg.style.width = "100%";
+                aImg.style.height = "100%";
+                var canvas = window.canvas;
+                var texture = canvas.texture(aImg);	
+                canvas.draw(texture).hueSaturation(0, -1).update()
+                img.src = canvas.toDataURL(img.file.type);
+            }; 
+        })(wrapperImg);
+        reader.readAsDataURL(img.file);
     }
 }
 
 function sepiaImage(event) {
     var img = document.getElementById("preview-image");
     if(img){
-        var req = new XMLHttpRequest();
-        req.open("POST", "https://imshare-189020.appspot.com/sepiaImage");
-        var formData = new FormData();
-        formData.append("id", sessionStorage.getItem("userid"));
-        formData.append("imageFile", img.file);
-        req.onreadystatechange = function() {
-            if (req.readyState == XMLHttpRequest.DONE) {
-                img.src = req.response;
-            }
-        }
-        req.send(formData);
+        var wrapperImg = document.createElement("img");
+        var reader = new FileReader();
+        reader.onload = (function(aImg) { 
+            return function(e) { 
+                aImg.src = e.target.result;
+                aImg.style.width = "100%";
+                aImg.style.height = "100%";
+                var canvas = window.canvas;
+                var texture = canvas.texture(aImg);	
+                canvas.draw(texture).sepia(1).update()
+                img.src = canvas.toDataURL(img.file.type);
+            }; 
+        })(wrapperImg);
+        reader.readAsDataURL(img.file);
     }
 }
 
@@ -159,7 +166,7 @@ function uploadImage(event) {
     .then(function(file){
         console.log(file);
         var req = new XMLHttpRequest();
-        req.open("POST", "https://imshare-189020.appspot.com/uploadImage");
+        req.open("POST", server + "uploadImage");
         var formData = new FormData();
         formData.append("id", sessionStorage.getItem("userid"));
         formData.append("imageFile", file);
@@ -168,6 +175,7 @@ function uploadImage(event) {
 }
 
 window.onload = function() {
+    window.canvas = fx.canvas();
     document.getElementById("file-input").addEventListener("change", fileSelected);
     document.getElementById("gallery-button").addEventListener("click", getMyGallery);
 }

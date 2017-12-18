@@ -9,7 +9,6 @@ var port = process.env.PORT || 8080;
 var path = require("path");
 var GoogleAuth = require('google-auth-library');
 var CLIENT_ID = "376810441789-fjcmqrde4a99a4fc843f53tn4ucibijp.apps.googleusercontent.com";
-var Jimp = require('jimp');
 
 var Storage = require('@google-cloud/storage');
 var projectId = 'imshare-189020';
@@ -18,6 +17,10 @@ var storage = new Storage({
     projectId: projectId
 });
 var bucket = storage.bucket('imshare-storage');
+
+function getPublicUrl (filename) {
+  return `https://storage.googleapis.com/${CLOUD_BUCKET}/${filename}`;
+}
 
 function sendUploadToGCS (req, res, next) {
   if (!req.file) {
@@ -72,47 +75,25 @@ function authenticateID (token, res){
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 app.use(express.static(__dirname + "/public/login"));
-app.use(express.static(__dirname + "/public/gallery"));
+app.use(express.static(__dirname + "/public/views"));
+app.set('views', './public/gallery')
+app.set("view engine", "pug");
 
 app.post("/userLogin", function(req, res) {
-   authenticateID(req.body.authToken, res)
+  authenticateID(req.body.authToken, res)
 });
 
 app.get("/gallery", function(req, res) {
-    console.log(req.query.userid+"this is it");
-    res.sendFile(__dirname+ "/public/gallery/gallery.html");
-});
-
-app.post("/imageUpload", upload.single("imageFile"), sendUploadToGCS, function(req, res) {
-  res.status(200).end();
-})
-
-app.post("/grayscaleImage", upload.single("imageFile"), function(req, res) {
-  Jimp.read(req.file.buffer, function(err, image) {
-    image.grayscale();
-    image.getBase64(image.getMIME(), function(err, buffer){
-      res.contentType(image.getMIME());
-      res.send(buffer);
-     });
-  });
-});
-
-app.post("/sepiaImage", upload.single("imageFile"), function(req, res) {
-  Jimp.read(req.file.buffer, function(err, image) {
-    image.sepia();
-    image.getBase64(image.getMIME(), function(err, buffer){
-      res.contentType(image.getMIME());
-      res.send(buffer);
-     });
-  });
+  res.render("gallery", {title: "Hello world", message: "Hello gallery", images: [10,3,24,15]});
 });
 
 app.post("/uploadImage", upload.single("imageFile"), sendUploadToGCS, function(req, res) {
-    res.status(200).end();
+  console.log(req.file.cloudStoragePublicUrl);
+  res.status(200).send('OK');
 });
 
 app.get("/", function(req, res) {
-    res.sendFile(path.join(__dirname + "/public/login/login.html"));
+  res.sendFile(path.join(__dirname + "/public/login/login.html"));
 });
 
 app.listen(port);
