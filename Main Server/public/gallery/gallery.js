@@ -1,0 +1,3 @@
+$(function(){
+    $("#myGallery").justifiedGallery();
+});

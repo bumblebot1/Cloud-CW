@@ -34,6 +34,7 @@ function logged_in(googleUser) {
             message.innerText = "Click below to choose an image";
             
             sessionStorage.setItem("userid", resp["id"]);
+            sessionStorage.setItem("email", resp["email"]);
             console.log("signed in as: " + resp["email"]);
         }
     }
@@ -169,6 +170,7 @@ function uploadImage(event) {
         req.open("POST", server + "uploadImage");
         var formData = new FormData();
         formData.append("id", sessionStorage.getItem("userid"));
+        formData.append("email", sessionStorage.getItem("email"));
         formData.append("imageFile", file);
         req.send(formData);
     })

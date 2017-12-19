@@ -1,9 +1,17 @@
 html
   head
-    title= title
+    link(rel='stylesheet', href='justifiedGallery.min.css')
+    link(rel='stylesheet', href="gallery.css")
+    script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js")
+    script(src="jquery.justifiedGallery.min.js")
+    script(src="gallery.js")
   body
-    h1= message
-    ul
+    div(class="header")
+      h1 Imshare
+      p These images were submitted by #{email}
+    div#myGallery
       each val in images
-        li= val
+        div
+          a(href=val.link)
+            img(src=val.link alt=val.name)
     
