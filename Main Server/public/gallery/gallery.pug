@@ -2,8 +2,10 @@ html
   head
     link(rel='stylesheet', href='justifiedGallery.min.css')
     link(rel='stylesheet', href="gallery.css")
+    link(rel='stylesheet', href="colorbox.css")
     script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js")
     script(src="jquery.justifiedGallery.min.js")
+    script(src="jquery.colorbox-min.js")
     script(src="gallery.js")
   body
     div(class="header")
@@ -12,6 +14,6 @@ html
     div#myGallery
       each val in images
         div
-          a(href=val.link)
+          a(href=val.link rel="gallery")
             img(src=val.link alt=val.name)
     

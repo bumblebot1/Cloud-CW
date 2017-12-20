@@ -37,7 +37,6 @@ function sendUploadToGCS (req, res, next) {
 
   const gcsname = req.body.id + "_" + req.file.originalname;
   const file = bucket.file(gcsname);
-
   const stream = file.createWriteStream({
     metadata: {
       contentType: req.file.mimetype
@@ -58,6 +57,7 @@ function sendUploadToGCS (req, res, next) {
   });
 
   stream.end(req.file.buffer);
+  
 }
 
 function authenticateID (token, res){
@@ -114,33 +114,36 @@ function checkNotExists(obj, arr) {
 app.post("/uploadImage", upload.single("imageFile"), sendUploadToGCS, function(req, res) {
   const kind = "User";
   var key = datastore.key([kind, req.body.id]);
-  datastore.get(key, function(err, entity) {
-    var images = [];
-    if(entity) {
-      images = entity.images.slice(0, entity.images.length);
-    }
-    var newEntry = {
-      link: req.file.cloudStoragePublicUrl,
-      name: req.file.originalname
-    };
+  const transaction = datastore.transaction();
 
-    if(checkNotExists(newEntry, images)){
-      images.push(newEntry);
-      datastore.upsert({
-        key: key,
-        data: {
-          email: req.body.email,
-          images: images
+  return transaction.run()
+    .then(() => transaction.get(key))
+    .then((results) => {
+        var entity = results[0];
+        var images = [];
+        if(entity) {
+          images = entity.images.slice(0, entity.images.length);
         }
-      }).then(() => {
+        var newEntry = {
+          link: req.file.cloudStoragePublicUrl,
+          name: req.file.originalname
+        };
+
+        if(checkNotExists(newEntry, images)){
+          images.push(newEntry);
+        }
+        transaction.save({
+          key: key,
+          data: {
+            email: req.body.email,
+            images: images
+          }
+        });
         console.log("Saved " + req.body.id + "_" + req.file.originalname + " " + req.file.cloudStoragePublicUrl);
-      }).catch((error) => {
-        console.error("ERROR:", error);
-      });
-    }
-  });
-  
-  res.status(200).send('OK');
+        res.status(200).send('OK');
+        return transaction.commit();
+    })
+    .catch(() => transaction.rollback());
 });
 
 app.get("/", function(req, res) {
