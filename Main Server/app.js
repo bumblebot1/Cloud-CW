@@ -89,6 +89,48 @@ function newView(userid) {
     .catch(() => transaction.rollback());
 }
 
+
+app.get("/gallery", function(req, res) {
+  var kind = "User";
+  var userid = req.query.userid;
+  console.log("Id: " + req.query.userid);
+  newView(userid);
+  const transaction = datastore.transaction();
+  var keys = [];
+  for(var j = 0; j < NUM_SHARDS; j++) {
+    var key = datastore.key([kind, userid + "_" + j]);
+    keys.push(transaction.get(key));
+  }
+  
+  return transaction.run()
+    .then(() => Promise.all(keys))
+    .then((results) => {
+      const entities = results.map((result) => result[0]);
+      var images = [];
+      var email = undefined;
+      for(var i = 0; i < NUM_SHARDS; i++){
+        if(entities[i] && entities[i].images) {
+          console.log(JSON.stringify(entities[i].images))
+          images = images.concat(entities[i].images);
+          email = entities[i].email;
+        }
+      }
+      res.render("gallery", {email: email, images: images});
+      
+      return transaction.commit();
+    })
+    .catch(() => transaction.rollback());
+});
+
+function checkNotExists(obj, arr) {
+  for(var i = 0; i < arr.length; i++) {
+    if(arr[i].name === obj.name){
+      return false;
+    }
+  }
+  return true;
+}
+
 app.get("/viewCount", function(req, res) {
   var userid = req.query.userid;
   const transaction = datastore.transaction();
@@ -98,7 +140,6 @@ app.get("/viewCount", function(req, res) {
     keys.push(transaction.get(key));
   }
 
-  var promise = Promise.all(keys);
   return transaction.run()
     .then(() => Promise.all(keys))
     .then((results) => {
@@ -118,43 +159,26 @@ app.get("/viewCount", function(req, res) {
     .catch(() => transaction.rollback());
 })
 
-app.get("/gallery", function(req, res) {
-  const kind = "User";
-  console.log("Id: " + req.query.userid);
-  newView(req.query.userid);
-  var key = datastore.key([kind, req.query.userid]);
-  datastore.get(key, function(err, entity) {
-    var images = [];
-    var email = undefined;
-    if(entity) {
-      images = entity.images.slice(0, entity.images.length);
-      email = entity.email;
-    }
-    res.render("gallery", {email: email, images: images});
-  });
-});
-
-function checkNotExists(obj, arr) {
-  for(var i = 0; i < arr.length; i++) {
-    if(arr[i].name === obj.name){
-      return false;
-    }
-  }
-  return true;
-}
-
 app.post("/uploadImage", upload.single("imageFile"), function(req, res) {
   const kind = "User";
-  var key = datastore.key([kind, req.body.id]);
+  var keys = [];
   const transaction = datastore.transaction();
+  var userid = req.body.id;
+  for(var j = 0; j < NUM_SHARDS; j++) {
+    var key = datastore.key([kind, userid + "_" + j]);
+    keys.push(transaction.get(key));
+  } 
 
   return transaction.run()
-    .then(() => transaction.get(key))
+    .then(() => Promise.all(keys))
     .then((results) => {
-        var entity = results[0];
+        var entities = results.map((result) => result[0]);
+        console.log(entities);
         var images = [];
-        if(entity) {
-          images = entity.images.slice(0, entity.images.length);
+        for(var i = 0; i < NUM_SHARDS; i++) {
+          if(entities[i]) {
+            images = images.concat(entities[i].images);
+          }
         }
         const gcsname = req.body.id + "_" + req.file.originalname;
         var publicURL = getPublicUrl(gcsname);
@@ -164,12 +188,19 @@ app.post("/uploadImage", upload.single("imageFile"), function(req, res) {
         };
 
         if(checkNotExists(newEntry, images)){
-          images.push(newEntry);
+          var rand = Math.floor(Math.random() * NUM_SHARDS);
+          var newImages = [newEntry];
+          if(entities[rand]) {
+            newImages = entities[rand].images.slice();
+            newImages.push(newEntry);
+          }
+          var key = datastore.key([kind, userid + "_" + rand]);
+
           transaction.save({
             key: key,
             data: {
               email: req.body.email,
-              images: images
+              images: newImages
             }
           });
           const file = bucket.file(gcsname);
