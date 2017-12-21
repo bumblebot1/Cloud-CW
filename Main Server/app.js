@@ -65,6 +65,7 @@ const counterKind = "Counter";
 
 function newView(userid) {
   var rand = Math.floor(Math.random() * NUM_SHARDS);
+  console.log("Random number: " + rand);
   var key = datastore.key([counterKind, userid + "_" + rand]);
   const transaction = datastore.transaction();
 
@@ -72,7 +73,6 @@ function newView(userid) {
     .then(() => transaction.get(key))
     .then((results) => {
       var entity = results[0];
-      console.log("is entity " + entity.count);
       var count = 0;
       if(entity) {
         count = entity.count;
@@ -90,7 +90,6 @@ function newView(userid) {
 }
 
 app.get("/viewCount", function(req, res) {
-  console.log(req.query.userid);
   var userid = req.query.userid;
   const transaction = datastore.transaction();
   var keys = [];
@@ -104,10 +103,8 @@ app.get("/viewCount", function(req, res) {
     .then(() => Promise.all(keys))
     .then((results) => {
       const counters = results.map((result) => result[0]);
-      console.log(counters);
       var total = 0;
       for(var i = 0; i < NUM_SHARDS; i++){
-        console.log(i);
         if(counters[i]) {
           total += counters[i].count;
         }
