@@ -30,36 +30,6 @@ function getPublicUrl (filename) {
   return `https://storage.googleapis.com/${CLOUD_BUCKET}/${filename}`;
 }
 
-function sendUploadToGCS (req, res, next) {
-  if (!req.file) {
-    return next();
-  }
-
-  const gcsname = req.body.id + "_" + req.file.originalname;
-  const file = bucket.file(gcsname);
-  const stream = file.createWriteStream({
-    metadata: {
-      contentType: req.file.mimetype
-    }
-  });
-
-  stream.on('error', (err) => {
-    req.file.cloudStorageError = err;
-    next(err);
-  });
-
-  stream.on('finish', () => {
-    req.file.cloudStorageObject = gcsname;
-    file.makePublic().then(() => {
-      req.file.cloudStoragePublicUrl = getPublicUrl(gcsname);
-      next();
-    });
-  });
-
-  stream.end(req.file.buffer);
-  
-}
-
 function authenticateID (token, res){
   var auth = new GoogleAuth;
   var client = new auth.OAuth2(CLIENT_ID, '', '');
@@ -89,29 +59,94 @@ app.post("/userLogin", function(req, res) {
   authenticateID(req.body.authToken, res)
 });
 
+
+const NUM_SHARDS = 30;
+const counterKind = "Counter";
+
+function newView(userid) {
+  var rand = Math.floor(Math.random() * NUM_SHARDS);
+  var key = datastore.key([counterKind, userid + "_" + rand]);
+  const transaction = datastore.transaction();
+
+  return transaction.run()
+    .then(() => transaction.get(key))
+    .then((results) => {
+      var entity = results[0];
+      console.log("is entity " + entity.count);
+      var count = 0;
+      if(entity) {
+        count = entity.count;
+      }
+      count++;
+      transaction.save({
+        key: key,
+        data: {
+          count: count
+        }
+      });
+      return transaction.commit();
+    })
+    .catch(() => transaction.rollback());
+}
+
+app.get("/viewCount", function(req, res) {
+  console.log(req.query.userid);
+  var userid = req.query.userid;
+  const transaction = datastore.transaction();
+  var keys = [];
+  for(var j = 0; j < NUM_SHARDS; j++) {
+    var key = datastore.key([counterKind, userid + "_" + j]);
+    keys.push(transaction.get(key));
+  }
+
+  var promise = Promise.all(keys);
+  return transaction.run()
+    .then(() => Promise.all(keys))
+    .then((results) => {
+      const counters = results.map((result) => result[0]);
+      console.log(counters);
+      var total = 0;
+      for(var i = 0; i < NUM_SHARDS; i++){
+        console.log(i);
+        if(counters[i]) {
+          total += counters[i].count;
+        }
+      }
+      console.log("Total is: " + total);
+      res.send({
+        count: total
+      });
+      return transaction.commit();
+    })
+    .catch(() => transaction.rollback());
+})
+
 app.get("/gallery", function(req, res) {
   const kind = "User";
   console.log("Id: " + req.query.userid);
+  newView(req.query.userid);
   var key = datastore.key([kind, req.query.userid]);
   datastore.get(key, function(err, entity) {
     var images = [];
+    var email = undefined;
     if(entity) {
       images = entity.images.slice(0, entity.images.length);
+      email = entity.email;
     }
-    res.render("gallery", {email: entity.email, images: images});
+    res.render("gallery", {email: email, images: images});
   });
 });
 
 function checkNotExists(obj, arr) {
   for(var i = 0; i < arr.length; i++) {
-    if(arr[i].link === obj.link && arr[i].name === obj.name){
+    if(arr[i].name === obj.name){
       return false;
     }
   }
   return true;
 }
 
-app.post("/uploadImage", upload.single("imageFile"), sendUploadToGCS, function(req, res) {
+app.post("/uploadImage", upload.single("imageFile"), function(req, res) {
   const kind = "User";
   var key = datastore.key([kind, req.body.id]);
   const transaction = datastore.transaction();
@@ -124,23 +159,43 @@ app.post("/uploadImage", upload.single("imageFile"), sendUploadToGCS, function(r
         if(entity) {
           images = entity.images.slice(0, entity.images.length);
         }
+        const gcsname = req.body.id + "_" + req.file.originalname;
+        var publicURL = getPublicUrl(gcsname);
         var newEntry = {
-          link: req.file.cloudStoragePublicUrl,
+          link: publicURL,
           name: req.file.originalname
         };
 
         if(checkNotExists(newEntry, images)){
           images.push(newEntry);
+          transaction.save({
+            key: key,
+            data: {
+              email: req.body.email,
+              images: images
+            }
+          });
+          const file = bucket.file(gcsname);
+          const stream = file.createWriteStream({
+            metadata: {
+              contentType: req.file.mimetype
+            }
+          });
+          stream.on('error', (err) => {
+            console.log("Error writing file: " + gcsname + " " + err);
+          });
+          stream.on('finish', () => {
+            req.file.cloudStorageObject = gcsname;
+            file.makePublic().then(() => {
+              req.file.cloudStoragePublicUrl = publicURL;
+              console.log("Saved " + req.body.id + "_" + req.file.originalname + " " + req.file.cloudStoragePublicUrl);
+              res.status(200).send('OK');
+            });
+          });
+          stream.end(req.file.buffer);
+        } else {
+          res.status(409).send(req.file.originalname + " already exists on the server");
         }
-        transaction.save({
-          key: key,
-          data: {
-            email: req.body.email,
-            images: images
-          }
-        });
-        console.log("Saved " + req.body.id + "_" + req.file.originalname + " " + req.file.cloudStoragePublicUrl);
-        res.status(200).send('OK');
         return transaction.commit();
     })
     .catch(() => transaction.rollback());

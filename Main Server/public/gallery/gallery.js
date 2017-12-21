@@ -13,4 +13,11 @@ $(function(){
             current : ''
         });
     });
+
+    var url = new URL(window.location.href);
+    var userid = url.searchParams.get("userid");
+    $.get("https://imshare-189020.appspot.com/viewCount", {userid: userid}).done(function(resp) {
+        $("#viewsNumber").text(resp.count);
+        $("#viewCounter").removeClass("hidden");
+    });
 });

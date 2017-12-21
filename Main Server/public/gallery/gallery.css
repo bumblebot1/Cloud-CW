@@ -10,3 +10,24 @@ html, body {
     padding: 2em 1em 3em;
     text-align: center;
 }
+
+.view-counter{
+    position: absolute;
+    top: 5;
+    left: 5;
+}
+
+.view-value {
+    font-weight: bold;
+    color: yellow;
+}
+
+.hidden {
+    display: none;
+}
+
+.home-link {
+    text-decoration: none;
+    cursor: pointer;
+    color: #FFFFFF;
+}

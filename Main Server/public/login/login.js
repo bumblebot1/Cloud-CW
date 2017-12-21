@@ -173,6 +173,13 @@ function uploadImage(event) {
         formData.append("email", sessionStorage.getItem("email"));
         formData.append("imageFile", file);
         req.send(formData);
+        req.onreadystatechange = function(){
+            if(req.readyState == XMLHttpRequest.DONE) {
+                if(req.status == 409) {
+                    alert("file name already in use");
+                }
+            }
+        }
     })
 }
 

@@ -3,17 +3,23 @@ html
     link(rel='stylesheet', href='justifiedGallery.min.css')
     link(rel='stylesheet', href="gallery.css")
     link(rel='stylesheet', href="colorbox.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Quicksand", type="text/css")
     script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js")
     script(src="jquery.justifiedGallery.min.js")
     script(src="jquery.colorbox-min.js")
     script(src="gallery.js")
   body
     div(class="header")
-      h1 Imshare
-      p These images were submitted by #{email}
+      h1 
+        a(href="/" class="home-link") Imshare
+      if email
+        p These images were submitted by #{email}
+      else
+        p This user has not submitted any images
     div#myGallery
       each val in images
         div
           a(href=val.link rel="gallery")
             img(src=val.link alt=val.name)
-    
+    div(id="viewCounter" class="view-counter hidden") Views: 
+      span(id="viewsNumber" class="view-value")
