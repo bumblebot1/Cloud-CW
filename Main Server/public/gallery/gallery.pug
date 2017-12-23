@@ -13,14 +13,17 @@ html
       h1 
         a(href="/" class="home-link") Imshare
       if email
-        p These images were submitted by #{email}
+        if images.length !== 0
+          p These images were submitted by #{email}
+        else
+          p This user has not submitted any images
       else
         p This user has not submitted any images
     div#myGallery
       each val in images
-        a(href=val.link rel="gallery")
+        a(class="links" href=val.link rel="gallery")
           img(src=val.link)
-          div(class="caption caption-visible")
+          div(class="caption")
             button(id="delete_"+val.name data-name=val.name) Delete
             span #{val.name}
     div(id="viewCounter" class="view-counter hidden") Views: 

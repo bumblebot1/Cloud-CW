@@ -21,15 +21,20 @@ $(function(){
         $("#viewCounter").removeClass("hidden");
     });
 
-    $('#myGallery').on("click", function(event) {
+    $('.links').on("click", function(event) {
         if($(event.target).is("button")){
+            event.stopPropagation();
             event.preventDefault();
             var params = {
                 userid: sessionStorage.getItem("userid"),
                 imageName: $(event.target).data("name")
             };
             console.log(params);
-            $.get("https://imshare-189020.appspot.com/deleteImage", params);
+            $.get("https://imshare-189020.appspot.com/deleteImage", params).done(function(resp, status, xhr) {
+                if(xhr.status === 200) {
+                    window.location.reload(true);
+                }
+            });
         }
     });
 });

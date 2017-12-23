@@ -162,8 +162,6 @@ app.get("/viewCount", function(req, res) {
 app.get("/deleteImage", function(req, res) {
   var userid = req.query.userid;
   var imageName = req.query.imageName;
-  console.log(imageName);
-  console.log(userid);
   const kind = "User";
   const transaction = datastore.transaction();
   var keys = [];
@@ -176,7 +174,6 @@ app.get("/deleteImage", function(req, res) {
     .then(() => Promise.all(keys))
     .then((results) => {
       const entities = results.map((result) => result[0]);
-      console.log(entities);
       for(var i = 0; i < NUM_SHARDS; i++){
         if(entities[i]){
           console.log(checkNotExists({name: imageName}, entities[i].images));
@@ -191,8 +188,8 @@ app.get("/deleteImage", function(req, res) {
                 images: newList
               }
             })
-            console.log(filename);
             var filename = userid + "_" + imageName;
+            console.log(filename);
             bucket.file(filename).delete();
             res.status(200).send("Ok");
             return transaction.commit();

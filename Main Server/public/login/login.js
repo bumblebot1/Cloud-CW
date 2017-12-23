@@ -178,6 +178,11 @@ function uploadImage(event) {
         req.send(formData);
         req.onreadystatechange = function(){
             if(req.readyState == XMLHttpRequest.DONE) {
+                if(req.status == 200) {
+                    document.getElementById("image-menu").className += " hidden";
+                    document.getElementById("file-message").innerText = "Choose an image...";
+                    document.getElementById("preview-image").className += " hidden";
+                }
                 if(req.status == 409) {
                     alert("file name already in use");
                 }
