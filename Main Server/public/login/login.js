@@ -3,8 +3,10 @@
 var server = "https://imshare-189020.appspot.com/";
 
 function logged_in(googleUser) {
+    var token = googleUser.getAuthResponse().id_token;
+    sessionStorage.setItem("token", token);
     var data = JSON.stringify({
-        authToken: googleUser.getAuthResponse().id_token
+        authToken: token
     });
     
     var postReq = new XMLHttpRequest();
@@ -35,6 +37,7 @@ function logged_in(googleUser) {
             
             sessionStorage.setItem("userid", resp["id"]);
             sessionStorage.setItem("email", resp["email"]);
+
             console.log("signed in as: " + resp["email"]);
         }
     }

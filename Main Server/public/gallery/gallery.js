@@ -20,4 +20,16 @@ $(function(){
         $("#viewsNumber").text(resp.count);
         $("#viewCounter").removeClass("hidden");
     });
+
+    $('#myGallery').on("click", function(event) {
+        if($(event.target).is("button")){
+            event.preventDefault();
+            var params = {
+                userid: sessionStorage.getItem("userid"),
+                imageName: $(event.target).data("name")
+            };
+            console.log(params);
+            $.get("https://imshare-189020.appspot.com/deleteImage", params);
+        }
+    });
 });

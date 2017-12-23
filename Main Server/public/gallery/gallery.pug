@@ -18,8 +18,10 @@ html
         p This user has not submitted any images
     div#myGallery
       each val in images
-        div
-          a(href=val.link rel="gallery")
-            img(src=val.link alt=val.name)
+        a(href=val.link rel="gallery")
+          img(src=val.link)
+          div(class="caption caption-visible")
+            button(id="delete_"+val.name data-name=val.name) Delete
+            span #{val.name}
     div(id="viewCounter" class="view-counter hidden") Views: 
       span(id="viewsNumber" class="view-value")
