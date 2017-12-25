@@ -1,7 +1,7 @@
 $(function(){
     $('#myGallery').justifiedGallery({
-        lastRow : 'nojustify', 
-        rowHeight : 180, 
+        lastRow : 'justify',
+        rowHeight : 250,
         rel : 'gallery',
         margins : 5
     }).on('jg.complete', function () {
@@ -26,7 +26,7 @@ $(function(){
             event.stopPropagation();
             event.preventDefault();
             var params = {
-                userid: sessionStorage.getItem("userid"),
+                authToken: sessionStorage.getItem("token"),
                 imageName: $(event.target).data("name")
             };
             console.log(params);

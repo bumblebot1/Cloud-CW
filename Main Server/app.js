@@ -205,46 +205,55 @@ app.get("/viewCount", function(req, res) {
 })
 
 app.get("/deleteImage", function(req, res) {
-  var userid = req.query.userid;
+  var token = req.query.authToken;
   var imageName = req.query.imageName;
-  const kind = "User";
-  const transaction = datastore.transaction();
-  var keys = [];
-  for(var j = 0; j < NUM_SHARDS; j++) {
-    var key = datastore.key([kind, userid + "_" + j]);
-    keys.push(transaction.get(key));
-  }
-
-  return transaction.run()
-    .then(() => Promise.all(keys))
-    .then((results) => {
-      const entities = results.map((result) => result[0]);
-      for(var i = 0; i < NUM_SHARDS; i++){
-        if(entities[i]){
-          console.log(checkNotExists({name: imageName}, entities[i].images));
-          if(!checkNotExists({name: imageName}, entities[i].images)) {
-            console.log("GOT IN THE REPLACE");
-            var newList = entities[i].images.filter(x => x.name !== imageName);
-            var key = datastore.key([kind, userid + "_" + i])
-            transaction.save({
-              key: key,
-              data: {
-                email: entities[i].email,
-                images: newList
-              }
-            })
-            var filename = userid + "_" + imageName;
-            console.log(filename);
-            bucket.file(filename).delete();
-            res.status(200).send("Ok");
-            return transaction.commit();
+  var auth = new GoogleAuth;
+  var client = new auth.OAuth2(CLIENT_ID, '', '');
+  client.verifyIdToken(
+      token,
+      CLIENT_ID,
+      function(e, login) {
+          var payload = login.getPayload();
+          var userid = payload['sub'];
+          const kind = "User";
+          const transaction = datastore.transaction();
+          var keys = [];
+          for(var j = 0; j < NUM_SHARDS; j++) {
+            var key = datastore.key([kind, userid + "_" + j]);
+            keys.push(transaction.get(key));
           }
-        }
-      }
-      res.status(400).send("File does not exist");
-      return transaction.commit();
-    })
-    .catch(() => transaction.rollback());
+
+          return transaction.run()
+            .then(() => Promise.all(keys))
+            .then((results) => {
+              const entities = results.map((result) => result[0]);
+              for(var i = 0; i < NUM_SHARDS; i++){
+                if(entities[i]){
+                  console.log(checkNotExists({name: imageName}, entities[i].images));
+                  if(!checkNotExists({name: imageName}, entities[i].images)) {
+                    console.log("GOT IN THE REPLACE");
+                    var newList = entities[i].images.filter(x => x.name !== imageName);
+                    var key = datastore.key([kind, userid + "_" + i])
+                    transaction.save({
+                      key: key,
+                      data: {
+                        email: entities[i].email,
+                        images: newList
+                      }
+                    })
+                    var filename = userid + "_" + imageName;
+                    console.log(filename);
+                    bucket.file(filename).delete();
+                    res.status(200).send("Ok");
+                    return transaction.commit();
+                  }
+                }
+              }
+              res.status(400).send("File does not exist");
+              return transaction.commit();
+            })
+            .catch(() => transaction.rollback());
+      });
 })
 
 app.post("/uploadImage", upload.single("imageFile"), function(req, res) {

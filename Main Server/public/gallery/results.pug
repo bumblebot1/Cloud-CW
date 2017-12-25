@@ -9,6 +9,7 @@ html
     div You searched for 
         span #{query}
     if galleries.length > 0
+        div The following users have been found.
         ul#search-results
             each val in galleries
                 li 
