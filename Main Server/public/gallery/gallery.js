@@ -1,6 +1,6 @@
 $(function(){
     $('#myGallery').justifiedGallery({
-        lastRow : 'justify',
+        lastRow : 'nojustify',
         rowHeight : 250,
         rel : 'gallery',
         margins : 5
