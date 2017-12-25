@@ -1,6 +1,6 @@
 "use strict";
 
-var server = "https://imshare-189020.appspot.com/";
+var server = "http://localhost:8080/";
 
 function logged_in(googleUser) {
     var token = googleUser.getAuthResponse().id_token;
@@ -79,8 +79,19 @@ function fileSelected(event) {
     img.file = file;
     img.className = "preview-image";
     
+    window.hiddenImage = new Image();
     var reader = new FileReader();
     reader.onload = function(e) { 
+        hiddenImage.src = e.target.result;
+        hiddenImage.style.width = "100%";
+        hiddenImage.style.height = "100%";
+        hiddenImage.onload = function() {
+            window.grayscaleTexture = grayscaleCanvas.texture(hiddenImage);
+            window.sepiaTexture = sepiaCanvas.texture(hiddenImage);
+
+            grayscaleCanvas.draw(grayscaleTexture).hueSaturation(0,-1).update();
+            sepiaCanvas.draw(sepiaTexture).sepia(1).update();
+        }
         img.src = e.target.result;
     }; 
     reader.readAsDataURL(file);
@@ -105,40 +116,14 @@ function getMyGallery(event){
 function grayscaleImage(event) {
     var img = document.getElementById("preview-image");
     if(img){
-        var wrapperImg = document.createElement("img");
-        var reader = new FileReader();
-        reader.onload = (function(aImg) { 
-            return function(e) { 
-                aImg.src = e.target.result;
-                aImg.style.width = "100%";
-                aImg.style.height = "100%";
-                var canvas = window.canvas;
-                var texture = canvas.texture(aImg);	
-                canvas.draw(texture).hueSaturation(0, -1).update()
-                img.src = canvas.toDataURL(img.file.type);
-            }; 
-        })(wrapperImg);
-        reader.readAsDataURL(img.file);
+        img.src = grayscaleCanvas.toDataURL(img.file.type);
     }
 }
 
 function sepiaImage(event) {
     var img = document.getElementById("preview-image");
     if(img){
-        var wrapperImg = document.createElement("img");
-        var reader = new FileReader();
-        reader.onload = (function(aImg) { 
-            return function(e) { 
-                aImg.src = e.target.result;
-                aImg.style.width = "100%";
-                aImg.style.height = "100%";
-                var canvas = window.canvas;
-                var texture = canvas.texture(aImg);	
-                canvas.draw(texture).sepia(1).update()
-                img.src = canvas.toDataURL(img.file.type);
-            }; 
-        })(wrapperImg);
-        reader.readAsDataURL(img.file);
+        img.src = sepiaCanvas.toDataURL(img.file.type);
     }
 }
 
@@ -192,7 +177,8 @@ function uploadImage(event) {
 }
 
 window.onload = function() {
-    window.canvas = fx.canvas();
+    window.grayscaleCanvas = fx.canvas();
+    window.sepiaCanvas = fx.canvas();
     document.getElementById("file-input").addEventListener("change", fileSelected);
     document.getElementById("gallery-button").addEventListener("click", getMyGallery);
 }
