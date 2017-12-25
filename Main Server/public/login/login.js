@@ -77,7 +77,7 @@ function fileSelected(event) {
     var img = document.getElementById("preview-image");
     var imgData = document.getElementById("image-data");
     window.imageFile = file;
-    img.className = "preview-image";
+    img.className = "hidden";
     
     window.hiddenImage = new Image();
     var reader = new FileReader();
@@ -97,11 +97,8 @@ function fileSelected(event) {
     img.onload = function() {
         var dkrm = new Darkroom('#preview-image', {
             // Size options
-            minWidth: 850,
-            minHeight: 800,
-            maxWidth: 850,
-            maxHeight: 800,
-            ratio: 4/3,
+            minWidth: 800,
+            maxWidth: 800,
             backgroundColor: '#000',
             // Plugins options
             plugins: {
@@ -121,11 +118,15 @@ function fileSelected(event) {
                             for(var i = 0; i < buttons.length; i++) {
                                 buttons[i].classList.remove("disabled-button");
                                 buttons[i].disabled = false;
+                                buttons[i].removeAttribute("title");
                             }
                         }
                         croppedImage.id = "preview-image";
                         croppedImage.className = "preview-image";
                         var darkRoomWrapper = this.darkroom.containerElement;
+                        document.getElementById("file-input").disabled = false;
+                        document.getElementById("upload-label").removeAttribute("title");
+                        document.getElementById("upload-label").classList.remove("disabled-button");
                         document.getElementById("upload-area").replaceChild(croppedImage, darkRoomWrapper);
                     }
                 },
@@ -141,7 +142,12 @@ function fileSelected(event) {
               for(var i = 0; i < buttons.length; i++) {
                   buttons[i].className += " disabled-button";
                   buttons[i].disabled = true;
+                  buttons[i].title = "You must finish cropping the image first!"
               }
+              document.getElementById("file-input").disabled = true;
+              document.getElementById("upload-label").title = "You must finish cropping the image first!";
+              document.getElementById("upload-label").className += " disabled-button";
+              dkrm.containerElement.className += " crop-container";
             }
           });
     }; 
@@ -220,6 +226,8 @@ function uploadImage(event) {
                     document.getElementById("image-menu").className += " hidden";
                     document.getElementById("file-message").innerText = "Choose an image...";
                     document.getElementById("preview-image").className += " hidden";
+                    var message = document.getElementById("upload-status");
+                    message.innerText = "Image was uploaded successfully!";
                 }
                 if(req.status == 409) {
                     alert("file name already in use");

@@ -67,7 +67,13 @@ html, body {
 }
 
 .disabled-button {
-    background-color: gray;
+    background-color: gray !important;
+    cursor: not-allowed;
+}
+
+
+.disabled-button:hover {
+    background-color: gray !important;
     cursor: not-allowed;
 }
 
@@ -119,6 +125,14 @@ html, body {
 
 .input-file + label:hover{
     background-color: #722040;
+}
+
+.crop-container {
+    margin-top: 30px;
+    background-color: #1f1f1f;
+    padding: 1.25rem 1.25rem;
+    min-width: 800px;
+    max-width: 800px; 
 }
 
 .preview-image {
