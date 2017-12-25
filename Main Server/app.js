@@ -41,11 +41,28 @@ function authenticateID (token, res){
           var payload = login.getPayload();
           var userid = payload['sub'];
           var email = payload['email'];
+          var name = payload['name'];
           res.send({
               id: userid,
               email: email
           });
+          saveEmail(userid, name, email);
       });
+}
+
+function saveEmail (userid, name, email){
+  const kind = "UserInfo";
+  var key = datastore.key([kind, userid]);
+  datastore.save({
+    key: key,
+    data: {
+      name: name,
+      email: email,
+      userid: userid
+    }
+  }).catch((err) => {
+    console.log("Error: " + err);
+  });
 }
 
 app.use(bodyParser.urlencoded({extended: false}));
