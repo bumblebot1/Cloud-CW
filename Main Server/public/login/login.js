@@ -1,6 +1,6 @@
 "use strict";
 
-var server = "http://localhost:8080/";
+var server = "https://imshare-189020.appspot.com/";
 
 function logged_in(googleUser) {
     var token = googleUser.getAuthResponse().id_token;
@@ -76,7 +76,7 @@ function fileSelected(event) {
 
     var img = document.getElementById("preview-image");
     var imgData = document.getElementById("image-data");
-    img.file = file;
+    window.imageFile = file;
     img.className = "preview-image";
     
     window.hiddenImage = new Image();
@@ -93,6 +93,57 @@ function fileSelected(event) {
             sepiaCanvas.draw(sepiaTexture).sepia(1).update();
         }
         img.src = e.target.result;
+    };
+    img.onload = function() {
+        var dkrm = new Darkroom('#preview-image', {
+            // Size options
+            minWidth: 850,
+            minHeight: 800,
+            maxWidth: 850,
+            maxHeight: 800,
+            ratio: 4/3,
+            backgroundColor: '#000',
+            // Plugins options
+            plugins: {
+                save: {
+                    callback: function() {
+                        var croppedImage = document.createElement("img");
+                        var newImage = dkrm.canvas.toDataURL();
+                        croppedImage.src = newImage;
+                        croppedImage.onload = function() {
+                            console.log("here");
+                            window.grayscaleTexture = grayscaleCanvas.texture(croppedImage);
+                            window.sepiaTexture = sepiaCanvas.texture(croppedImage);
+                    
+                            grayscaleCanvas.draw(grayscaleTexture).hueSaturation(0,-1).update();
+                            sepiaCanvas.draw(sepiaTexture).sepia(1).update();
+                            var buttons = document.getElementsByClassName("myButton");
+                            for(var i = 0; i < buttons.length; i++) {
+                                buttons[i].classList.remove("disabled-button");
+                                buttons[i].disabled = false;
+                            }
+                        }
+                        croppedImage.id = "preview-image";
+                        croppedImage.className = "preview-image";
+                        var darkRoomWrapper = this.darkroom.containerElement;
+                        document.getElementById("upload-area").replaceChild(croppedImage, darkRoomWrapper);
+                    }
+                },
+                crop: {
+                    quickCropKey: 67
+                }
+            },
+            // Post initialize script
+            initialize: function() {
+              var cropPlugin = this.plugins['crop'];
+              cropPlugin.requireFocus();
+              var buttons = document.getElementsByClassName("myButton");
+              for(var i = 0; i < buttons.length; i++) {
+                  buttons[i].className += " disabled-button";
+                  buttons[i].disabled = true;
+              }
+            }
+          });
     }; 
     reader.readAsDataURL(file);
     document.getElementById("image-menu").classList.remove("hidden");
@@ -116,27 +167,28 @@ function getMyGallery(event){
 function grayscaleImage(event) {
     var img = document.getElementById("preview-image");
     if(img){
-        img.src = grayscaleCanvas.toDataURL(img.file.type);
+        var file = window.imageFile;
+        img.src = grayscaleCanvas.toDataURL(file.type);
     }
 }
 
 function sepiaImage(event) {
     var img = document.getElementById("preview-image");
     if(img){
-        img.src = sepiaCanvas.toDataURL(img.file.type);
+        var file = window.imageFile;
+        img.src = sepiaCanvas.toDataURL(file.type);
     }
 }
 
 function originalImage(event) {
     var img = document.getElementById("preview-image");
-    
+    var file = window.imageFile;
+    console.log(file);
     var reader = new FileReader();
-    reader.onload = (function(aImg) { 
-        return function(e) { 
-            aImg.src = e.target.result; 
-        }; 
-    })(img);
-    reader.readAsDataURL(img.file);
+    reader.onload = function(e) { 
+        img.src = e.target.result; 
+    }; 
+    reader.readAsDataURL(file);
 }
 
 function urltoFile(url, filename, mimeType){
@@ -148,10 +200,11 @@ function urltoFile(url, filename, mimeType){
 
 function uploadImage(event) {
     var img = document.getElementById("preview-image");
-    console.log(img.file);
-    console.log(img.file.name)
-    console.log(img.file.type);
-    urltoFile(img.src, img.file.name, img.file.type)
+    var file = window.imageFile;
+    console.log(file);
+    console.log(file.name)
+    console.log(file.type);
+    urltoFile(img.src, file.name, file.type)
     .then(function(file){
         console.log(file);
         var req = new XMLHttpRequest();

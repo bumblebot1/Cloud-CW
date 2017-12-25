@@ -62,8 +62,13 @@ html, body {
     cursor: pointer;
 }
 
-.myButton:hover{
+.myButton:hover {
     background-color: #722040;
+}
+
+.disabled-button {
+    background-color: gray;
+    cursor: not-allowed;
 }
 
 .image-menu {
