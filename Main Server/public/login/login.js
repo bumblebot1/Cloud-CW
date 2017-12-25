@@ -237,9 +237,15 @@ function uploadImage(event) {
     })
 }
 
+function searchForGallery(event) {
+    var value = document.getElementById("search-input").value;
+    window.location.href = server + "search?value=" + value;
+}
+
 window.onload = function() {
     window.grayscaleCanvas = fx.canvas();
     window.sepiaCanvas = fx.canvas();
     document.getElementById("file-input").addEventListener("change", fileSelected);
     document.getElementById("gallery-button").addEventListener("click", getMyGallery);
+    document.getElementById("search-button").addEventListener("click", searchForGallery);
 }

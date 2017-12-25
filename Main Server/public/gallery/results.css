@@ -1,0 +1,26 @@
+html, body {
+    background-color: #922424;
+    color: #FFFFFF;
+    font-family: "Quicksand", sans-serif;
+    font-size: 1.25em;
+    text-align: center
+}
+
+.home-link {
+    text-decoration: none;
+    cursor: pointer;
+    color: #FFFFFF;
+}
+
+ul {
+    list-style-type: circle;
+    text-align: left;
+}
+
+a {
+    color: white;
+}
+
+span {
+    font-weight: 800;
+}

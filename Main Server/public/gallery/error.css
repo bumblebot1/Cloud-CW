@@ -1,0 +1,26 @@
+html, body {
+    background-color: #922424;
+    color: #FFFFFF;
+    font-family: "Quicksand", sans-serif;
+    font-size: 1.25em;
+    text-align: center
+}
+
+.home-link {
+    text-decoration: none;
+    cursor: pointer;
+    color: #FFFFFF;
+}
+
+.header {
+    padding: 2em 1em 3em;
+    text-align: center;
+}
+
+a {
+    color: white;
+}
+
+.error-message {
+    font-weight: 800;
+}

@@ -1,0 +1,17 @@
+html
+  head
+    link(rel='stylesheet', href="results.css")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Quicksand", type="text/css")
+  body
+    div(class="header")
+      h1 
+        a(href="/" class="home-link") Imshare
+    div You searched for 
+        span #{query}
+    if galleries.length > 0
+        ul#search-results
+            each val in galleries
+                li 
+                    a(class="links" href=val.link) #{val.email}
+    else
+        div No results have been found

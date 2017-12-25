@@ -58,7 +58,8 @@ function saveEmail (userid, name, email){
     data: {
       name: name,
       email: email,
-      userid: userid
+      userid: userid,
+      galleryLink: `https://imshare-189020.appspot.com/gallery?userid=${userid}`
     }
   }).catch((err) => {
     console.log("Error: " + err);
@@ -74,6 +75,33 @@ app.set("view engine", "pug");
 
 app.post("/userLogin", function(req, res) {
   authenticateID(req.body.authToken, res)
+});
+
+app.get("/search", function(req, res) {
+  var string = req.query.value;
+  string = string.toLowerCase();
+  if(string.length < 4) {
+    string = string;
+  } else {
+    string = string.substr(0,4);
+  }
+
+  var start = string;
+  var end = string + "\ufffd";
+
+  const emailQuery = datastore.createQuery('UserInfo')
+    .filter('email', '>=', start)
+    .filter('email', '<=', end);
+
+  datastore.runQuery(emailQuery)
+    .then((results) => {
+      const entities = results[0];
+      var galleries = results[0].map((user) => ({link: user.galleryLink, email: user.email}));
+      res.render("results", {galleries: galleries, query: req.query.value});
+    })
+    .catch((err) => {
+      console.log("ERROR searching for " + req.query.value + " " + err);
+    })
 });
 
 
@@ -294,3 +322,19 @@ app.get("/", function(req, res) {
 });
 
 app.listen(port);
+
+app.use(function(req, res, next) {
+  res.status(404);
+  
+  if (req.accepts('html')) {
+    res.render('error', { url: req.url });
+    return;
+  }
+
+  if (req.accepts('json')) {
+    res.send({ error: 'Not found' });
+    return;
+  }
+
+  res.type('txt').send('Not found');
+})
