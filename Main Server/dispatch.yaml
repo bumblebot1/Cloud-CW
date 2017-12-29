@@ -1,0 +1,10 @@
+dispatch:
+  - url: 'imshare-189020.appspot.com/'
+    service: default
+
+  - url: '*/uploadImage*'
+    service: upload
+  
+  - url: '*/deleteImage*'
+    service: upload
+    
