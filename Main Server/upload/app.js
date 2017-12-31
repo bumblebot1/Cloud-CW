@@ -49,6 +49,7 @@ function checkNotExists(obj, arr) {
 }
 
 app.get("/deleteImage", function(req, res) {
+  console.log(imageName + "  DELETING");
   var token = req.query.authToken;
   var imageName = req.query.imageName;
   var auth = new GoogleAuth;
@@ -114,19 +115,27 @@ app.post("/uploadImage", upload.single("imageFile"), function(req, res) {
     .then(() => Promise.all(keys))
     .then((results) => {
         var entities = results.map((result) => result[0]);
-        console.log(entities);
         var images = [];
         for(var i = 0; i < NUM_SHARDS; i++) {
-          if(entities[i]) {
+          if(entities[i]){
+            console.log("Images " + i + " " + entities[i].images);
+          }
+          if(entities[i] && entities[i].images && entities[i].images.length > 0) {
             images = images.concat(entities[i].images);
           }
         }
+        console.log(images);
         const gcsname = req.body.id + "_" + req.file.originalname;
         var publicURL = getPublicUrl(gcsname);
         var newEntry = {
           link: publicURL,
           name: req.file.originalname
         };
+        console.log(newEntry);
+        if(checkNotExists(newEntry, images))
+          console.log("TRUE");
+        else 
+          console.log("FALSE");
 
         if(checkNotExists(newEntry, images)){
           var rand = Math.floor(Math.random() * NUM_SHARDS);
@@ -136,6 +145,7 @@ app.post("/uploadImage", upload.single("imageFile"), function(req, res) {
             newImages.push(newEntry);
           }
           var key = datastore.key([kind, userid + "_" + rand]);
+          console.log("NEW ONES"+newImages);
 
           transaction.save({
             key: key,
@@ -173,6 +183,7 @@ app.post("/uploadImage", upload.single("imageFile"), function(req, res) {
 app.listen(port);
 
 app.use(function(req, res, next) {
+  console.log("error");
   res.status(404);
   
   if (req.accepts('html')) {
