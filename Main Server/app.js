@@ -1,5 +1,5 @@
 "use strict";
-
+require('@google-cloud/debug-agent').start();
 var express = require("express");
 var bodyParser = require("body-parser");
 var multer  = require('multer');
@@ -141,27 +141,31 @@ app.get("/gallery", function(req, res) {
   console.log("Id: " + req.query.userid);
   newView(userid);
   const transaction = datastore.transaction();
-  var keys = [];
-  for(var j = 0; j < NUM_SHARDS; j++) {
-    var key = datastore.key([kind, userid + "_" + j]);
-    keys.push(transaction.get(key));
-  }
+
+  var parentKey = datastore.key(["UserInfo", userid]);
+  var query =  datastore.createQuery("Image").hasAncestor(parentKey);
   
   return transaction.run()
-    .then(() => Promise.all(keys))
+    .then(() => transaction.runQuery(query))
     .then((results) => {
-      const entities = results.map((result) => result[0]);
-      var images = [];
-      var email = undefined;
-      for(var i = 0; i < NUM_SHARDS; i++){
-        if(entities[i] && entities[i].images) {
-          console.log(JSON.stringify(entities[i].images))
-          images = images.concat(entities[i].images);
-          email = entities[i].email;
-        }
-      }
-      res.render("gallery", {email: email, images: images});
-      
+      var entities = results[0].map((result) => result[0]);
+      console.log(entities);
+      var images = entities.map((val) => {
+        console.log(val);
+        return val[Datastore.KEY];
+      })
+      console.log("\n\n\n\n");
+      console.log(images);
+      // transaction.get(parentKey)
+      //   .then((result) => {
+      //     var parent = result[0];
+      //     console.log(parent);
+      //     res.render("gallery", {email: parent.email, images: images});     
+      //   })
+      //   .catch((err) => {
+      //     console.log("ERROR searching for parent " + err);
+      //   })
+      res.render("error", {url: "error in retrieval"});
       return transaction.commit();
     })
     .catch(() => transaction.rollback());
