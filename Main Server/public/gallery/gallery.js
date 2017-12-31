@@ -21,6 +21,10 @@ $(function(){
         $("#viewCounter").removeClass("hidden");
     });
 
+    if(userid !== sessionStorage.getItem("userid")){
+        $("button").remove();
+    }
+
     $('.links').on("click", function(event) {
         if($(event.target).is("button")){
             event.stopPropagation();
