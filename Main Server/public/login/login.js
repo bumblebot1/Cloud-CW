@@ -216,6 +216,7 @@ function uploadImage(event) {
         var req = new XMLHttpRequest();
         req.open("POST", server + "uploadImage");
         var formData = new FormData();
+        formData.append("token", sessionStorage.getItem("token"));
         formData.append("id", sessionStorage.getItem("userid"));
         formData.append("email", sessionStorage.getItem("email"));
         formData.append("imageFile", file);
@@ -238,8 +239,15 @@ function uploadImage(event) {
 }
 
 function searchForGallery(event) {
-    var value = document.getElementById("search-input").value;
+    var value = document.getElementById("search-input").value.replace(/\s/g,'');
     window.location.href = server + "search?value=" + value;
+}
+
+function enterSearch(event) {
+    if(event.keyCode === 13){
+        var value = document.getElementById("search-input").value.replace(/\s/g,'');
+        window.location.href = server + "search?value=" + value;
+    }
 }
 
 window.onload = function() {
@@ -248,4 +256,5 @@ window.onload = function() {
     document.getElementById("file-input").addEventListener("change", fileSelected);
     document.getElementById("gallery-button").addEventListener("click", getMyGallery);
     document.getElementById("search-button").addEventListener("click", searchForGallery);
+    document.getElementById("search-input").addEventListener("keydown", enterSearch);
 }

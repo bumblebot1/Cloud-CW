@@ -105,7 +105,7 @@ app.get("/search", function(req, res) {
 });
 
 
-const NUM_SHARDS = 30;
+const NUM_SHARDS = 10;
 const counterKind = "Counter";
 
 function newView(userid) {

@@ -37,11 +37,11 @@ function getPublicUrl (filename) {
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
-const NUM_SHARDS = 30;
+const NUM_SHARDS = 10;
 
 function checkNotExists(obj, arr) {
   for(var i = 0; i < arr.length; i++) {
-    if(arr[i].name === obj.name){
+    if(arr[i] && arr[i].name === obj.name){
       return false;
     }
   }
@@ -49,15 +49,24 @@ function checkNotExists(obj, arr) {
 }
 
 app.get("/deleteImage", function(req, res) {
-  console.log(imageName + "  DELETING");
   var token = req.query.authToken;
   var imageName = req.query.imageName;
+  console.log(imageName + "  DELETING");
+  if(!token || !imageName){
+    res.status(404).render('error', { url: req.url });
+    return;
+  }
   var auth = new GoogleAuth;
   var client = new auth.OAuth2(CLIENT_ID, '', '');
   client.verifyIdToken(
       token,
       CLIENT_ID,
       function(e, login) {
+        console.log(e);
+        if(!login){
+          res.status(404).send("bad request");
+          return;
+        }
           var payload = login.getPayload();
           var userid = payload['sub'];
           const kind = "User";
@@ -73,8 +82,8 @@ app.get("/deleteImage", function(req, res) {
             .then((results) => {
               const entities = results.map((result) => result[0]);
               for(var i = 0; i < NUM_SHARDS; i++){
-                if(entities[i]){
-                  console.log(checkNotExists({name: imageName}, entities[i].images));
+                if(entities[i] !== undefined){
+                  console.log(i + "   " + checkNotExists({name: imageName}, entities[i].images));
                   if(!checkNotExists({name: imageName}, entities[i].images)) {
                     console.log("GOT IN THE REPLACE");
                     var newList = entities[i].images.filter(x => x.name !== imageName);
